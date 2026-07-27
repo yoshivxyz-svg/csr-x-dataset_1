@@ -74,8 +74,24 @@ def clean_file(star_type, config):
     relevant physical features, converts columns to numeric types, calculates 
     V_minus_I_color (V - I), drops missing values, and returns a clean DataFrame.
     """
-    # TODO: Implement this function
-    raise NotImplementedError
+    filepath = os.path.join(RAW_DIR, config["filename"])
+
+    df = pd.read_csv(filepath, sep=r'\s+', header=None, comment='#')
+
+    i_mag = pd.to_numeric(df[1], errors='coerce')
+    v_mag = pd.to_numeric(df[2], errors='coerce')
+    period = pd.to_numeric(df[3], errors='coerce')
+    amp = pd.to_numeric(df[config["amp_col"]], errors='coerce')
+
+    clean_df = pd.DataFrame({
+        "I_magnitude": i_mag,
+        "period_days": period,
+        "I_band_amplitude": amp,
+        "V_minus_I_color": v_mag - i_mag,
+        "star_type": star_type
+    })
+
+    return clean_df.dropna()
 
 
 def balance_and_merge(dataframes, samples_per_class=1500):
@@ -84,8 +100,15 @@ def balance_and_merge(dataframes, samples_per_class=1500):
     rows (using random_state=42) and concatenates them into a single 
     master DataFrame.
     """
-    # TODO: Implement this function
-    raise NotImplementedError
+    balanced_dfs = []
+
+    for df in dataframes:
+        if len(df) > samples_per_class:
+            df = df.sample(n=samples_per_class, random_state=42)
+
+        balanced_dfs.append(df)
+
+    return pd.concat(balanced_dfs, ignore_index=True)
 
 
 if __name__ == "__main__":
